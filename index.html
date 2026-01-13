@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Game Hub - Змейка</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary: #8a2be2;
+            --secondary: #00d4ff;
+            --accent: #ff4081;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #00ff88;
+            --warning: #ffcc00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 10px var(--secondary); }
+            50% { box-shadow: 0 0 20px var(--secondary); }
+            100% { box-shadow: 0 0 10px var(--secondary); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #aaa;
+            font-size: 1.1rem;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: var(--secondary);
+            font-size: 1.3rem;
+        }
+
+        .profile {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(0, 212, 255, 0.2));
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--secondary);
+            object-fit: cover;
+            animation: glow 2s infinite;
+        }
+
+        .user-details h3 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            color: var(--light);
+        }
+
+        .user-details p {
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 3px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--success);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .leaderboard {
+            background: linear-gradient(135deg, rgba(255, 64, 129, 0.2), rgba(255, 204, 0, 0.2));
+        }
+
+        .leaderboard-list {
+            list-style: none;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+
+        .leaderboard-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .leaderboard-item.me {
+            background: linear-gradient(90deg, rgba(0, 212, 255, 0.2), transparent);
+            border-left: 4px solid var(--secondary);
+        }
+
+        .rank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .rank-1 { background: gold; color: #000; }
+        .rank-2 { background: silver; color: #000; }
+        .rank-3 { background: #cd7f32; color: #000; }
+        .rank-other { background: rgba(255, 255, 255, 0.1); }
+
+        .player-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-name {
+            font-weight: bold;
+            color: var(--light);
+        }
+
+        .player-score {
+            color: var(--success);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .game-container {
+            grid-column: span 2;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(138, 43, 226, 0.1));
+            padding: 25px;
+            border-radius: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                grid-column: span 1;
+            }
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .score-display {
+            font-size: 1.5rem;
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(138, 43, 226, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(255, 65, 108, 0.4);
+        }
+
+        #gameCanvas {
+            display: block;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .game-instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            font-size: 0.9rem;
+            color: #aaa;
+            text-align: center;
+        }
+
+        .highlight {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: linear-gradient(45deg, var(--accent), #ff9966);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: var(--secondary);
+        }
+
+        .emoji {
+            font-size: 1.2em;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Стили для сенсорного управления */
+#touch-controls button:active {
+    background: linear-gradient(135deg, rgba(255, 64, 129, 0.9), rgba(255, 204, 0, 0.9)) !important;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 480px) {
+    .controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn {
+        width: 100%;
+        padding: 15px;
+    }
+    
+    .game-instructions {
+        font-size: 0.8rem;
+        padding: 10px;
+    }
+    
+    /* Уменьшаем кнопки управления на очень маленьких экранах */
+    #touch-controls button {
+        width: 60px;
+        height: 60px;
+        font-size: 20px;
+    }
+    
+    .joystick-container {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+/* Анимация появления кнопок управления */
+@keyframes slideUp {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+#touch-controls {
+    animation: slideUp 0.5s ease-out;
+}
+
+/* Индикатор сенсорного управления */
+.mobile-controls-hint {
+    position: fixed;
+    bottom: 200px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 212, 255, 0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    z-index: 999;
+    animation: pulse 2s infinite;
+    display: none;
+}
+
+/* Активное состояние кнопок */
+.touch-button-active {
+    transform: scale(0.85) !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2) !important;
+    transition: transform 0.1s !important;
+}
+    </style>
+</head>
+<body>
+    <div class="container" id="app" style="display: none;">
+        <div class="header">
+            <h1>🎮 Telegram Game Hub</h1>
+            <p class="subtitle">Играй в змейку, соревнуйся с друзьями и устанавливай рекорды!</p>
+        </div>
+
+        <div class="content">
+            <!-- Профиль пользователя -->
+            <div class="card profile">
+                <div class="card-title">
+                    <span class="emoji">👤</span> Мой профиль
+                    <span class="badge" id="user-badge">VIP</span>
+                </div>
+                <div class="profile-info">
+                    <img id="user-avatar" class="avatar" src="" alt="Avatar">
+                    <div class="user-details">
+                        <h3 id="user-name">Загрузка...</h3>
+                        <p><span class="emoji">🆔</span> ID: <span id="user-id">-</span></p>
+                        <p><span class="emoji">🌐</span> Язык: <span id="user-language">-</span></p>
+                        <p><span class="emoji">🎨</span> Тема: <span id="user-theme">-</span></p>
+                    </div>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="games-played">0</div>
+                        <div class="stat-label">Сыграно игр</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="high-score">0</div>
+                        <div class="stat-label">Рекорд</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="rank">#1</div>
+                        <div class="stat-label">Ранг</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Таблица рекордов -->
+            <div class="card leaderboard">
+                <div class="card-title">
+                    <span class="emoji">🏆</span> Топ игроков
+                </div>
+                <ul class="leaderboard-list" id="leaderboard">
+                    <!-- Заполняется через JavaScript -->
+                </ul>
+            </div>
+
+            <!-- Игра Змейка -->
+            <div class="game-container">
+                <div class="game-header">
+                    <div class="score-display">
+                        <span class="emoji">⭐</span> Счет: <span id="current-score">0</span>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-secondary" id="pauseBtn">
+                            <span class="emoji">⏸️</span> Пауза
+                        </button>
+                        <button class="btn btn-danger" id="restartBtn">
+                            <span class="emoji">🔄</span> Заново
+                        </button>
+                    </div>
+                </div>
+                
+                <canvas id="gameCanvas" width="800" height="500"></canvas>
+                
+                <div class="game-instructions">
+                    <p>Управление: <span class="highlight">Стрелки ← ↑ → ↓</span> или <span class="highlight">WASD</span></p>
+                    <p>Собери еду <span class="emoji">🍎</span> для увеличения счета и длины змейки!</p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" id="playBtn">
+                        <span class="emoji">🎮</span> Играть в Змейку
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Telegram Game Hub • Создано с ❤️ для Telegram Mini Apps</p>
+            <p>Используйте WebApp Telegram для лучшего опыта</p>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div style="font-size: 2rem; margin-bottom: 20px;">🎮</div>
+        <p>Загрузка игрового центра...</p>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        
+        // Получаем данные пользователя
+        const user = tg.initDataUnsafe.user;
+        const userId = user?.id || Math.floor(Math.random() * 10000);
+        
+        // Игровые переменные
+        let gameActive = false;
+        let currentScore = 0;
+        let highScore = localStorage.getItem(`snake_high_score_${userId}`) || 0;
+        let gamesPlayed = localStorage.getItem(`games_played_${userId}`) || 0;
+        
+        // Инициализация приложения
+        function initApp() {
+            // Раскрываем приложение на весь экран
+            tg.expand();
+            tg.ready();
+            
+            // Устанавливаем тему
+            document.body.style.backgroundColor = tg.themeParams.bg_color || '#1a1a2e';
+            
+            // Заполняем данные профиля
+            if (user) {
+                document.getElementById('user-name').textContent = 
+                    `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Анонимный игрок';
+                document.getElementById('user-id').textContent = userId;
+                document.getElementById('user-language').textContent = user.language_code || 'ru';
+                document.getElementById('user-avatar').src = user.photo_url || 'https://via.placeholder.com/80';
+            }
+            
+            // Устанавливаем тему из Telegram
+            const theme = tg.colorScheme;
+            document.getElementById('user-theme').textContent = theme === 'dark' ? 'Темная' : 'Светлая';
+            
+            // Загружаем статистику
+            document.getElementById('high-score').textContent = highScore;
+            document.getElementById('games-played').textContent = gamesPlayed;
+            
+            // Генерируем таблицу лидеров
+            generateLeaderboard();
+            
+            // Инициализируем игру
+            initSnakeGame();
+            
+            // Показываем приложение
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            
+            // Анимация приветствия
+            setTimeout(() => {
+                tg.HapticFeedback.impactOccurred('light');
+            }, 500);
+        }
+        
+        // Генерация таблицы лидеров
+        function generateLeaderboard() {
+            const leaderboard = [
+                { id: user?.id || 1, name: user?.first_name || 'Вы', score: highScore, isMe: true },
+                { id: 2, name: 'Алексей', score: Math.floor(Math.random() * 100) + 50, isMe: false },
+                { id: 3, name: 'Мария', score: Math.floor(Math.random() * 100) + 40, isMe: false },
+                { id: 4, name: 'Дмитрий', score: Math.floor(Math.random() * 100) + 30, isMe: false },
+                { id: 5, name: 'Анна', score: Math.floor(Math.random() * 100) + 20, isMe: false }
+            ];
+            
+            // Сортируем по очкам
+            leaderboard.sort((a, b) => b.score - a.score);
+            
+            const leaderboardEl = document.getElementById('leaderboard');
+            leaderboardEl.innerHTML = '';
+            
+            leaderboard.forEach((player, index) => {
+                const li = document.createElement('li');
+                li.className = `leaderboard-item ${player.isMe ? 'me' : ''}`;
+                
+                const rankClass = `rank rank-${index + 1 <= 3 ? index + 1 : 'other'}`;
+                
+                li.innerHTML = `
+                    <div style="display: flex; align-items: center; width: 100%;">
+                        <div class="${rankClass}">${index + 1}</div>
+                        <div class="player-info">
+                            <div class="player-name">${player.name} ${player.isMe ? '👈' : ''}</div>
+                        </div>
+                        <div class="player-score">${player.score}</div>
+                    </div>
+                `;
+                
+                leaderboardEl.appendChild(li);
+            });
+            
+            // Устанавливаем ранг пользователя
+            const userRank = leaderboard.findIndex(p => p.isMe) + 1;
+            document.getElementById('rank').textContent = `#${userRank}`;
+        }
+
+        // Игра Змейка с сенсорным управлением
+function initSnakeGame() {
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Адаптивный размер канваса
+    function resizeCanvas() {
+        const maxWidth = Math.min(800, window.innerWidth - 50);
+        canvas.width = maxWidth;
+        canvas.height = Math.min(500, maxWidth * 0.625);
+        
+        // Обновляем позиции сенсорных кнопок при изменении размера
+        updateTouchControlsPosition();
+    }
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Игровые переменные
+    let snake = [{x: 10, y: 10}];
+    let food = {x: 15, y: 15};
+    let dx = 1, dy = 0;
+    let gameLoop;
+    let isPaused = false;
+    
+    // Размеры сетки
+    const gridSize = 20;
+    
+    // Сенсорное управление
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    let isTouching = false;
+    
+    // Генерация еды
+    function generateFood() {
+        food = {
+            x: Math.floor(Math.random() * (canvas.width / gridSize)),
+            y: Math.floor(Math.random() * (canvas.height / gridSize))
+        };
+    }
+    
+    // Отрисовка игры
+    function draw() {
+        // Очистка канваса
+        ctx.fillStyle = 'rgba(26, 26, 46, 0.8)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Отрисовка сетки
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < canvas.width; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+        
+        // Отрисовка змейки
+        snake.forEach((segment, index) => {
+            const gradient = ctx.createLinearGradient(
+                segment.x * gridSize, 
+                segment.y * gridSize,
+                segment.x * gridSize + gridSize,
+                segment.y * gridSize + gridSize
+            );
+            
+            if (index === 0) {
+                // Голова
+                gradient.addColorStop(0, '#00ff88');
+                gradient.addColorStop(1, '#00cc6a');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+                
+                // Глаза
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(segment.x * gridSize + 4, segment.y * gridSize + 4, 4, 4);
+                ctx.fillRect(segment.x * gridSize + 12, segment.y * gridSize + 4, 4, 4);
+            } else {
+                // Тело
+                gradient.addColorStop(0, '#00d4ff');
+                gradient.addColorStop(1, '#0088ff');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+                
+                // Эффект чешуи
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fillRect(segment.x * gridSize + 3, segment.y * gridSize + 3, 2, 2);
+            }
+            
+            // Обводка
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        });
+        
+        // Отрисовка еды
+        ctx.fillStyle = '#ff4081';
+        ctx.beginPath();
+        ctx.arc(
+            food.x * gridSize + gridSize/2,
+            food.y * gridSize + gridSize/2,
+            gridSize/2,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+        
+        // Эффект свечения для еды
+        ctx.shadowColor = '#ff4081';
+        ctx.shadowBlur = 15;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        // Текст яблока
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('🍎', food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2 + 4);
+    }
+    
+    // Обновление игры
+    function update() {
+        if (isPaused || !gameActive) return;
+        
+        // Движение головы
+        const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+        
+        // Проверка столкновения со стенами
+        if (
+            head.x < 0 || 
+            head.x >= canvas.width / gridSize ||
+            head.y < 0 || 
+            head.y >= canvas.height / gridSize
+        ) {
+            gameOver();
+            return;
+        }
+        
+        // Проверка столкновения с собой
+        if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+            gameOver();
+            return;
+        }
+        
+        // Добавляем новую голову
+        snake.unshift(head);
+        
+        // Проверка съедания еды
+        if (head.x === food.x && head.y === food.y) {
+            // Вибрация при съедании
+            tg.HapticFeedback.impactOccurred('medium');
+            
+            currentScore += 10;
+            document.getElementById('current-score').textContent = currentScore;
+            
+            // Обновляем рекорд
+            if (currentScore > highScore) {
+                highScore = currentScore;
+                document.getElementById('high-score').textContent = highScore;
+                localStorage.setItem(`snake_high_score_${userId}`, highScore);
+                generateLeaderboard();
+            }
+            
+            generateFood();
+        } else {
+            // Удаляем хвост, если не съели еду
+            snake.pop();
+        }
+        
+        draw();
+    }
+    
+    // Конец игры
+    function gameOver() {
+        gameActive = false;
+        clearInterval(gameLoop);
+        
+        gamesPlayed++;
+        localStorage.setItem(`games_played_${userId}`, gamesPlayed);
+        document.getElementById('games-played').textContent = gamesPlayed;
+        
+        tg.HapticFeedback.impactOccurred('heavy');
+        
+        // Показываем сообщение
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = '#ff4081';
+        ctx.font = 'bold 36px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Игра окончена!', canvas.width/2, canvas.height/2 - 40);
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = '24px Arial';
+        ctx.fillText(`Счет: ${currentScore}`, canvas.width/2, canvas.height/2 + 10);
+        
+        ctx.fillStyle = '#00d4ff';
+        ctx.font = '18px Arial';
+        ctx.fillText('Нажмите "Заново" для новой игры', canvas.width/2, canvas.height/2 + 50);
+    }
+    
+    // Управление с клавиатуры
+    function changeDirection(event) {
+        if (!gameActive) return;
+        
+        const key = event.key.toLowerCase();
+        
+        // Стрелки и WASD
+        const leftKeys = ['arrowleft', 'a', 'ф'];
+        const upKeys = ['arrowup', 'w', 'ц'];
+        const rightKeys = ['arrowright', 'd', 'в'];
+        const downKeys = ['arrowdown', 's', 'ы'];
+        
+        // Проверяем, чтобы змейка не разворачивалась на 180 градусов
+        if (leftKeys.includes(key) && dx !== 1) {
+            dx = -1;
+            dy = 0;
+            event.preventDefault();
+        } else if (upKeys.includes(key) && dy !== 1) {
+            dx = 0;
+            dy = -1;
+            event.preventDefault();
+        } else if (rightKeys.includes(key) && dx !== -1) {
+            dx = 1;
+            dy = 0;
+            event.preventDefault();
+        } else if (downKeys.includes(key) && dy !== -1) {
+            dx = 0;
+            dy = 1;
+            event.preventDefault();
+        }
+    }
+    
+    // Сенсорное управление - свайпы
+    function handleTouchStart(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        isTouching = true;
+    }
+    
+    function handleTouchMove(e) {
+        if (!isTouching || !gameActive) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        touchEndX = touch.clientX;
+        touchEndY = touch.clientY;
+    }
+    
+    function handleTouchEnd(e) {
+        if (!isTouching || !gameActive) return;
+        e.preventDefault();
+        isTouching = false;
+        
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        
+        // Минимальная длина свайпа для регистрации
+        const minSwipeDistance = 30;
+        
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            // Горизонтальный свайп
+            if (Math.abs(deltaX) > minSwipeDistance) {
+                if (deltaX > 0 && dx !== -1) {
+                    // Свайп вправо
+                    dx = 1;
+                    dy = 0;
+                    tg.HapticFeedback.impactOccurred('light');
+                } else if (deltaX < 0 && dx !== 1) {
+                    // Свайп влево
+                    dx = -1;
+                    dy = 0;
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+            }
+        } else {
+            // Вертикальный свайп
+            if (Math.abs(deltaY) > minSwipeDistance) {
+                if (deltaY > 0 && dy !== -1) {
+                    // Свайп вниз
+                    dx = 0;
+                    dy = 1;
+                    tg.HapticFeedback.impactOccurred('light');
+                } else if (deltaY < 0 && dy !== 1) {
+                    // Свайп вверх
+                    dx = 0;
+                    dy = -1;
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+            }
+        }
+    }
+    
+    // Создание сенсорного управления
+    function createTouchControls() {
+        const touchControlsContainer = document.createElement('div');
+        touchControlsContainer.id = 'touch-controls';
+        touchControlsContainer.style.cssText = `
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        `;
+        
+        // Основной контейнер управления
+        const controlsWrapper = document.createElement('div');
+        controlsWrapper.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            pointer-events: auto;
+        `;
+        
+        // Верхний ряд кнопок (вверх)
+        const topRow = document.createElement('div');
+        topRow.style.cssText = `
+            display: flex;
+            justify-content: center;
+        `;
+        
+        const upButton = createDirectionButton('↑', 'up', 'Вверх', () => {
+            if (gameActive && dy !== 1) {
+                dx = 0;
+                dy = -1;
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        });
+        topRow.appendChild(upButton);
+        
+        // Средний ряд кнопок (влево/вправо)
+        const middleRow = document.createElement('div');
+        middleRow.style.cssText = `
+            display: flex;
+            gap: 60px;
+            justify-content: center;
+            align-items: center;
+        `;
+        
+        const leftButton = createDirectionButton('←', 'left', 'Влево', () => {
+            if (gameActive && dx !== 1) {
+                dx = -1;
+                dy = 0;
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        });
+        
+        const rightButton = createDirectionButton('→', 'right', 'Вправо', () => {
+            if (gameActive && dx !== -1) {
+                dx = 1;
+                dy = 0;
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        });
+        
+        // Джойстик (альтернатива кнопкам)
+        const joystickContainer = document.createElement('div');
+        joystickContainer.style.cssText = `
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(0, 212, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            display: none;
+        `;
+        
+        const joystick = document.createElement('div');
+        joystick.style.cssText = `
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #8a2be2, #00d4ff);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: move;
+            touch-action: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        `;
+        
+        joystickContainer.appendChild(joystick);
+        
+        // События для джойстика
+        let isDragging = false;
+        let joystickCenterX = 60;
+        let joystickCenterY = 60;
+        
+        joystick.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDragging = true;
+            joystick.style.transition = 'none';
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging || !gameActive) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const rect = joystickContainer.getBoundingClientRect();
+            const x = touch.clientX - rect.left - joystickCenterX;
+            const y = touch.clientY - rect.top - joystickCenterY;
+            
+            // Ограничиваем движение внутри джойстика
+            const distance = Math.sqrt(x * x + y * y);
+            const maxDistance = 30;
+            
+            let limitedX = x;
+            let limitedY = y;
+            
+            if (distance > maxDistance) {
+                limitedX = (x / distance) * maxDistance;
+                limitedY = (y / distance) * maxDistance;
+            }
+            
+            joystick.style.transform = `translate(calc(-50% + ${limitedX}px), calc(-50% + ${limitedY}px))`;
+            
+            // Определяем направление
+            const angle = Math.atan2(limitedY, limitedX) * (180 / Math.PI);
+            const deadZone = 15; // Минимальное движение для регистрации
+            
+            if (distance > deadZone) {
+                if (angle >= -45 && angle < 45 && dx !== -1) {
+                    // Вправо
+                    dx = 1;
+                    dy = 0;
+                } else if (angle >= 45 && angle < 135 && dy !== -1) {
+                    // Вниз
+                    dx = 0;
+                    dy = 1;
+                } else if ((angle >= 135 || angle < -135) && dx !== 1) {
+                    // Влево
+                    dx = -1;
+                    dy = 0;
+                } else if (angle >= -135 && angle < -45 && dy !== 1) {
+                    // Вверх
+                    dx = 0;
+                    dy = -1;
+                }
+            }
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            if (isDragging) {
+                isDragging = false;
+                joystick.style.transition = 'transform 0.3s ease';
+                joystick.style.transform = 'translate(-50%, -50%)';
+            }
+        });
+        
+        // Нижний ряд кнопок (вниз)
+        const bottomRow = document.createElement('div');
+        bottomRow.style.cssText = `
+            display: flex;
+            justify-content: center;
+        `;
+        
+        const downButton = createDirectionButton('↓', 'down', 'Вниз', () => {
+            if (gameActive && dy !== -1) {
+                dx = 0;
+                dy = 1;
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        });
+        bottomRow.appendChild(downButton);
+        
+        // Добавляем все элементы
+        middleRow.appendChild(leftButton);
+        middleRow.appendChild(joystickContainer);
+        middleRow.appendChild(rightButton);
+        
+        controlsWrapper.appendChild(topRow);
+        controlsWrapper.appendChild(middleRow);
+        controlsWrapper.appendChild(bottomRow);
+        
+        touchControlsContainer.appendChild(controlsWrapper);
+        document.body.appendChild(touchControlsContainer);
+        
+        // Переключатель типа управления
+        const controlToggle = document.createElement('div');
+        controlToggle.style.cssText = `
+            position: fixed;
+            bottom: 180px;
+            right: 20px;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: auto;
+        `;
+        
+        const toggleButton = document.createElement('button');
+        toggleButton.innerHTML = '🎮 Переключить на джойстик';
+        toggleButton.style.cssText = `
+            padding: 10px 15px;
+            background: rgba(138, 43, 226, 0.8);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        `;
+        
+        let isJoystickMode = false;
+        toggleButton.addEventListener('click', () => {
+            isJoystickMode = !isJoystickMode;
+            if (isJoystickMode) {
+                joystickContainer.style.display = 'block';
+                leftButton.style.display = 'none';
+                rightButton.style.display = 'none';
+                toggleButton.innerHTML = '🎯 Переключить на кнопки';
+            } else {
+                joystickContainer.style.display = 'none';
+                leftButton.style.display = 'flex';
+                rightButton.style.display = 'flex';
+                toggleButton.innerHTML = '🎮 Переключить на джойстик';
+            }
+        });
+        
+        controlToggle.appendChild(toggleButton);
+        document.body.appendChild(controlToggle);
+        
+        return touchControlsContainer;
+    }
+    
+    // Создание кнопки направления
+    function createDirectionButton(symbol, direction, label, onClick) {
+        const button = document.createElement('button');
+        button.innerHTML = `<span style="font-size: 28px;">${symbol}</span>`;
+        button.title = label;
+        button.style.cssText = `
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.9), rgba(0, 212, 255, 0.9));
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        `;
+        
+        // Анимации при нажатии
+        button.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            button.style.transform = 'scale(0.9)';
+            button.style.boxShadow = '0 3px 10px rgba(0, 0, 0, 0.2)';
+        });
+        
+        button.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            button.style.transform = 'scale(1)';
+            button.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.3)';
+            onClick();
+        });
+        
+        // Для мыши (на всякий случай)
+        button.addEventListener('mousedown', () => {
+            button.style.transform = 'scale(0.9)';
+        });
+        
+        button.addEventListener('mouseup', () => {
+            button.style.transform = 'scale(1)';
+            onClick();
+        });
+        
+        button.addEventListener('mouseleave', () => {
+            button.style.transform = 'scale(1)';
+        });
+        
+        return button;
+    }
+    
+    // Обновление позиции сенсорных кнопок
+    function updateTouchControlsPosition() {
+        const touchControls = document.getElementById('touch-controls');
+        if (touchControls) {
+            // Рассчитываем отступ снизу в зависимости от высоты экрана
+            const bottomOffset = Math.max(30, window.innerHeight * 0.05);
+            touchControls.style.bottom = `${bottomOffset}px`;
+        }
+    }
+    
+    // Старт игры
+    function startGame() {
+        if (gameActive) return;
+        
+        // Сброс переменных
+        snake = [{x: 10, y: 10}];
+        food = {x: 15, y: 15};
+        dx = 1;
+        dy = 0;
+        currentScore = 0;
+        isPaused = false;
+        gameActive = true;
+        
+        document.getElementById('current-score').textContent = '0';
+        document.getElementById('pauseBtn').innerHTML = '<span class="emoji">⏸️</span> Пауза';
+        
+        generateFood();
+        draw();
+        
+        // Запуск игрового цикла
+        clearInterval(gameLoop);
+        gameLoop = setInterval(update, 150);
+        
+        // Показываем инструкцию по управлению на мобильных
+        if ('ontouchstart' in window) {
+            setTimeout(() => {
+                tg.showAlert('Используйте кнопки управления внизу экрана или свайпайте по игровому полю');
+            }, 1000);
+        }
+    }
+    
+    // Пауза игры
+    function togglePause() {
+        if (!gameActive) return;
+        
+        isPaused = !isPaused;
+        document.getElementById('pauseBtn').innerHTML = isPaused 
+            ? '<span class="emoji">▶️</span> Продолжить'
+            : '<span class="emoji">⏸️</span> Пауза';
+        
+        if (isPaused) {
+            // Показываем текст паузы
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#00d4ff';
+            ctx.font = 'bold 36px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('ПАУЗА', canvas.width/2, canvas.height/2);
+        } else {
+            draw();
+        }
+    }
+    
+    // Инициализация управления
+    function initControls() {
+        // Кнопки управления
+        document.getElementById('playBtn').addEventListener('click', startGame);
+        document.getElementById('pauseBtn').addEventListener('click', togglePause);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+        
+        // Управление с клавиатуры
+        document.addEventListener('keydown', changeDirection);
+        
+        // Сенсорное управление для мобильных устройств
+        if ('ontouchstart' in window) {
+            // Создаем сенсорные кнопки
+            createTouchControls();
+            
+            // Добавляем свайпы по всему экрану
+            canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
+            canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
+            canvas.addEventListener('touchend', handleTouchEnd, {passive: false});
+            
+            // Предотвращаем масштабирование при двойном тапе
+            document.addEventListener('touchstart', function(e) {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Предотвращаем контекстное меню при долгом нажатии
+            canvas.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                return false;
+            });
+            
+            // Обновляем инструкции
+            const instructions = document.querySelector('.game-instructions');
+            instructions.innerHTML = `
+                <p><span class="emoji">🎮</span> <span class="highlight">Сенсорное управление:</span></p>
+                <p>• Используйте кнопки внизу экрана</p>
+                <p>• Или делайте свайпы по игровому полю</p>
+                <p>• Можно переключиться на джойстик</p>
+            `;
+        }
+    }
+    
+    // Начальная инициализация
+    generateFood();
+    initControls();
+    draw();
+}
